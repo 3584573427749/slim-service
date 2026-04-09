@@ -2,6 +2,7 @@
   "name": "template/slim-service",
   "type": "project",
   "require": {
+    "php": "^8.3",
     "slim/slim": "^4.0",
     "php-di/php-di": "^7.0",
     "slim/psr7": "^1.5",
