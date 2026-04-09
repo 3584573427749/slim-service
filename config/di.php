@@ -1,10 +1,16 @@
 <?php
+declare(strict_types=1);
+
+use App\Application\ErrorHandler\ErrorHandler;
+use App\Application\ErrorHandler\ErrorMiddleware;
+use App\Application\Settings;
 use DI\ContainerBuilder;
 
-$builder = new ContainerBuilder();
-$builder->addDefinitions([
-    Settings::class => fn() => Settings::getInstance(),
-
-]);
-
-return $builder->build();
+return function (ContainerBuilder $builder) {
+    $builder->addDefinitions(
+        [Settings::class => fn() => Settings::getInstance(),
+            'logger' => fn() => (require __DIR__ . '/logger.php')(),
+            ErrorHandler::class => fn($c) => new ErrorHandler($c->get('logger')),
+            ErrorMiddleware::class => fn($c) => new ErrorMiddleware($c->get(ErrorHandler::class)),
+        ]);
+};

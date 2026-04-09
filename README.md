@@ -13,83 +13,41 @@ Detta repository är en template för alla mikrotjänster byggda på Slim 4.
 - OpenAPI-kontrakt (`openapi.yaml`)
 - CI för OpenAPI (linter + validation + diff)
 
-## Lokal utveckling
+## ErrorHandler
+Systemet använder en central ErrorHandler som:
+- returnerar JSON i fast struktur
+- loggar ALLA exceptions
+- aldrig visar stacktraces i API‑svar
+- använder egna exception‑klasser
+- använder Monolog och skriver loggar i logs/app.log
 
-Detta projekt kan köras helt med Docker för snabb och isolerad utveckling.
 
-### Starta tjänsten
-
-```bash
-make up
-````
-
-Tjänsten nås sedan på:  
-**<http://localhost:8080/health>**
-
-***
-
-### Stoppa tjänsten
-
-```bash
-make stop
+## Composer‑scripts
+Detta repo erbjuder enhetliga scripts för alla mikrotjänster.
+```json
+"scripts": {
+"up": "docker compose up --build",
+"down": "docker compose down",
+"start": "docker compose up",
+"shell": "docker compose exec slim-service sh",
+"logs": "docker compose logs -f",
+"test": "docker compose exec slim-service vendor/bin/phpunit",
+"stan": "docker compose exec slim-service vendor/bin/phpstan analyse src --level=max",
+"migrate": "docker compose exec slim-service vendor/bin/phinx migrate -e development",
+"fix": "docker compose exec slim-service vendor/bin/php-cs-fixer fix"
+}
 ```
 
-***
-
-### Starta utan rebuild (snabbare)
-
+Kommandon körs så här:
 ```bash
-make start
+composer up
+composer test
+composer stan
+composer migrate
+composer fix
 ```
 
-***
-
-### Öppna shell i containern
-
-```bash
-make shell
-```
-
-***
-
-### Visa loggar
-
-```bash
-make logs
-```
-
-***
-
-### Kör tester
-
-```bash
-make test
-```
-
-***
-
-### Kör PHPStan
-
-```bash
-make stan
-```
-
-***
-
-### Kör migreringar (Phinx)
-
-```bash
-make migrate
-```
-
-***
-
-### Formatera kod med PHP‑CS‑Fixer
-
-```bash
-make fix
-```
-
+På Windows fungerar detta utan Makefile, eftersom Composer är plattformsoberoende.
 
 ## OpenAPI
 Alla mikrotjänster måste upprätthålla ett komplett API-kontrakt i `openapi.yaml`.
@@ -99,10 +57,38 @@ Kontraktet används av:
 - CI (kontraktsvalidering + breaking change-detektion)
 - dokumentation
 
-## Kom igång
+
+## Lokal utveckling
+### Steg 1 – Installera beroenden i Docker
 ```bash
-composer install
-php -S localhost:8080 -t public
+docker compose up --build -d
+docker compose exec slim-service composer install
+```
+
+
+### Steg 2 – Skapa din .env‑fil
+```bash
+cp .env.example .env
+```
+
+
+### Steg 3 – Starta tjänsten
+```bash
+composer up
+```
+
+Tjänsten körs nu på:
+http://localhost:8080/health
+
+
+### Steg 4 – Shell in i containern
+```bash
+composer shell
+```
+
+##️ Databas & migrations
+```bash
+composer migrate
 ```
 
 ## Uppdatera API-kontrakt
