@@ -20,14 +20,23 @@ class ErrorHandler {
     public function __invoke(Request $request, Throwable $exception, bool $displayErrorDetails): Response {
         $status = $this->mapStatus($exception);
         $payload = $this->buildPayload($exception, $status);
-// Logga ALLT $this->logger->error(sprintf( "%s (%d): %s", $exception::class, $status, $exception->getMessage() ), [ 'path' => $request->getUri()->getPath(), 'method' => $request->getMethod(), 'details' => method_exists($exception, 'getDetails') ? $exception->getDetails() : null ]);
+
+        // Logga ALLT
+        $this->logger->error(sprintf( "%s (%d): %s", $exception::class, $status, $exception->getMessage() ), [ 'path' => $request->getUri()->getPath(), 'method' => $request->getMethod(), 'details' => method_exists($exception, 'getDetails') ? $exception->getDetails() : null ]);
+
         $response = new \Slim\Psr7\Response($status);
         $response->getBody()->write(json_encode($payload));
         return $response->withHeader('Content-Type', 'application/json');
     }
 
     private function buildPayload(Throwable $exception, int $status): array {
-        return ['status' => $status, 'error' => (new \ReflectionClass($exception))->getShortName(), 'message' => $exception->getMessage(), 'details' => method_exists($exception, 'getDetails') ? $exception->getDetails() : null,];
+        return ['status' => $status,
+            'error' => [
+                'type' => (new \ReflectionClass($exception))->getShortName(),
+                'message' => $exception->getMessage(),
+                'details' => method_exists($exception, 'getDetails') ? $exception->getDetails() : null,
+            ]
+        ];
     }
 
     private function mapStatus(Throwable $exception): int {
