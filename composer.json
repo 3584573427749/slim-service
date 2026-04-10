@@ -33,7 +33,8 @@
     "logs": "docker compose logs -f",
     "test": "docker compose exec slim-service vendor/bin/phpunit",
     "stan": "docker compose exec slim-service vendor/bin/phpstan analyse src --level=max",
-    "migrate": "docker compose exec slim-service vendor/bin/phinx migrate -e development",
-    "fix": "docker compose exec slim-service vendor/bin/php-cs-fixer fix"
+    "fix": "docker compose exec slim-service vendor/bin/php-cs-fixer fix",
+    "migrate": "docker compose exec slim-service vendor/bin/phinx migrate",
+    "rollback": "docker compose exec slim-service vendor/bin/phinx rollback"
   }
 }

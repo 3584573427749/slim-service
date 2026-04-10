@@ -12,5 +12,9 @@ return function (ContainerBuilder $builder) {
             'logger' => fn() => (require __DIR__ . '/logger.php')(),
             ErrorHandler::class => fn($c) => new ErrorHandler($c->get('logger')),
             ErrorMiddleware::class => fn($c) => new ErrorMiddleware($c->get(ErrorHandler::class)),
+
+            Connection::class => function ($c) {
+                return Connection::getInstance($c->get(Settings::class));
+            },
         ]);
 };
