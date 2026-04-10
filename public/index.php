@@ -13,6 +13,8 @@ $app = AppFactory::create();
 // ErrorMiddleware först
 $app->add(ErrorMiddleware::class);
 
+(require __DIR__ . '/../config/middleware.php')($app);
+
 (require __DIR__ . '/../config/routes.php')($app);
 
 $app->run();
