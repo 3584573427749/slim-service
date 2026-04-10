@@ -91,6 +91,25 @@ composer shell
 composer migrate
 ```
 
+
+##️ Routing & Actions
+
+Routing är organiserad i domänbaserade grupper via `config/routes.php`.
+
+Varje endpoint har en egen invokable Action‑klass i:
+
+src/Application/Actions/*Action.php
+
+Alla Actions ärver från `AbstractAction` och returnerar konsekventa JSON‑svar:
+
+```json
+{
+  "status": 200,
+  "data": { ... }
+}
+```
+
+
 ## Uppdatera API-kontrakt
 När du ändrar något i API:et:
 1. Uppdatera openapi.yaml
