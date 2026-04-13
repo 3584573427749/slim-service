@@ -16,5 +16,15 @@ return function (ContainerBuilder $builder) {
             Connection::class => function ($c) {
                 return Connection::getInstance($c->get(Settings::class));
             },
+
+            AuthServiceClient::class => fn($c) =>
+            new AuthServiceClient($c->get(App\Application\Settings::class)),
+
+            AuthServiceMiddleware::class => fn($c) =>
+            new AuthServiceMiddleware(
+                $c->get(AuthServiceClient::class),
+                $c->get(App\Application\Settings::class)
+            ),
+
         ]);
 };

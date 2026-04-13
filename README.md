@@ -1,117 +1,276 @@
 # Slim Service Template
 
-Detta repository är en template för alla mikrotjänster byggda på Slim 4.
+Detta repository är en komplett template för mikrotjänster byggda på Slim 4.
+
+Den innehåller en fullständig grund för:
+
+*   Settings (.env + typcasting)
+*   ErrorHandler (standardiserat JSON‑format)
+*   DBAL‑bootstrap (Doctrine DBAL)
+*   Repositories (AbstractRepository)
+*   Actions (invokable, en per endpoint)
+*   Routing (grupper per domän)
+*   Middleware (JSON body parsing + CORS)
+*   Auth (gateway‑baserad)
+*   Role‑middleware
+*   AuthService‑integration (service‑to‑service säkerhet)
+*   OpenAPI‑kontrakt
+*   Docker + Makefile + Composer scripts
+
+***
 
 ## Funktioner
-- Slim 4 + PHP-DI
-- Action-baserad arkitektur
-- Doctrine DBAL
-- Phinx migrations
-- PHPUnit, PHPStan, PHPCS, Infection, Rector
-- Dockerfile
-- VERSION-fil (semver)
-- OpenAPI-kontrakt (`openapi.yaml`)
-- CI för OpenAPI (linter + validation + diff)
+
+*   Slim 4 + PHP-DI
+*   Action‑baserad arkitektur
+*   Doctrine DBAL
+*   Phinx migrations
+*   PHPUnit, PHPStan, PHPCS, Infection, Rector
+*   Dockerfile + docker-compose
+*   VERSION‑fil (semver)
+*   OpenAPI-kontrakt (openapi.yaml)
+*   CI för OpenAPI (linter + validation + diff)
+*   Central ErrorHandler
+*   Monolog-loggning
+*   Settings-system (.env, castade variabler)
+*   Auth-middleware (gateway User‑auth)
+*   Role‑middleware (behörighet per route)
+*   AuthService-middleware (service‑to‑service autentisering)
+
+***
 
 ## ErrorHandler
+
 Systemet använder en central ErrorHandler som:
-- returnerar JSON i fast struktur
-- loggar ALLA exceptions
-- aldrig visar stacktraces i API‑svar
-- använder egna exception‑klasser
-- använder Monolog och skriver loggar i logs/app.log
 
+*   returnerar JSON i fast struktur
+*   inkluderar “status”, “error”, “message” och valfri “details”
+*   loggar ALLA exceptions (logs/app.log)
+*   visar aldrig stacktraces i API‑svar
+*   använder egna exception-klasser:
+    *   ValidationException
+    *   UnauthorizedException
+    *   ForbiddenException
+    *   NotFoundException
+    *   InternalException
 
-## Composer‑scripts
-Detta repo erbjuder enhetliga scripts för alla mikrotjänster.
-```json
-"scripts": {
-"up": "docker compose up --build",
-"down": "docker compose down",
-"start": "docker compose up",
-"shell": "docker compose exec slim-service sh",
-"logs": "docker compose logs -f",
-"test": "docker compose exec slim-service vendor/bin/phpunit",
-"stan": "docker compose exec slim-service vendor/bin/phpstan analyse src --level=max",
-"migrate": "docker compose exec slim-service vendor/bin/phinx migrate -e development",
-"fix": "docker compose exec slim-service vendor/bin/php-cs-fixer fix"
+Exempel på felrespons:
+
+{
+"status": 400,
+"error": {
+"type": "ValidationException",
+"message": "Felaktig input",
+"details": { ... }
 }
-```
+}
 
-Kommandon körs så här:
-```bash
-composer up
-composer test
-composer stan
-composer migrate
+***
+
+## Settings
+
+Settings-systemet:
+
+*   läser `.env` via vlucas/phpdotenv
+*   finns i `src/Application/Settings.php`
+*   erbjuder `get(key, default)`
+*   castar automatiskt values beroende på key (int, bool, float, string)
+
+Exempel:
+
+$dbHost = $settings->get('DB\_HOST');
+$debug = $settings->get('APP\_DEBUG', false);
+
+***
+
+## DBAL (Database)
+
+Doctrine DBAL‑bootstrap via singleton:
+
+*   Connection ligger i `src/Infrastructure/Database/Connection.php`
+*   Lazy-connection (ansluter först när query körs)
+*   Konfiguration läses från Settings
+*   Repositories får DB‑connection via DI
+
+***
+
+## Repositories
+
+AbstractRepository:
+
+*   finns i `src/Infrastructure/Persistence/AbstractRepository.php`
+*   tillhandahåller:
+    *   `$this->db` (DBAL connection)
+    *   `qb()` (QueryBuilder helper)
+*   konkreta repositories anger tabellnamn själva
+
+Exempel:
+
+protected string $table = 'users';
+
+***
+
+## Routing & Actions
+
+Routing organiseras i domän-grupper via `config/routes.php`.
+
+Varje endpoint har en egen Action‑klass:
+
+src/Application/Actions/<Domain>/<Action>.php
+
+Alla Actions är **invokable**:
+
+public function \_\_invoke(Request $request, Response $response)
+
+Alla Actions returnerar konsekventa success‑responses:
+
+{
+"status": 200,
+"data": {
+"user": {
+...
+}
+}
+}
+
+***
+
+## Middleware
+
+### JSON Body Parsing
+
+Slims inbyggda body parser:
+$app->addBodyParsingMiddleware();
+
+### CORS middleware
+
+Regex-baserad, konfigureras via `.env`:
+
+ENABLE\_CORS=true  
+CORS\_ALLOW\_ORIGIN\_PATTERN=^https\://(\[a-z0-9-]+.)\*example.com$  
+CORS\_ALLOW\_METHODS=GET,POST,PUT,PATCH,DELETE,OPTIONS  
+CORS\_ALLOW\_HEADERS=Authorization,Content-Type,Accept
+
+Stödjer credentials.
+
+***
+
+## AuthMiddleware (gateway‑auth)
+
+Validerar trusted headers från gateway:
+
+X-Auth-Verified: true  
+X-User-Id: <id>  
+X-User-Roles: role1,role2
+
+Om saknas → UnauthorizedException (401)
+
+Lägger userId och roles i request‑attributes.
+
+Appliceras per route‑group.
+
+***
+
+## RoleMiddleware
+
+Kräver minst en roll:
+
+new RequireRoleMiddleware(\['admin'])
+
+Case‑insensitiv jämförelse.
+
+Vid roll‑brist → ForbiddenException (403)
+
+Läggs på route‑grupper efter AuthMiddleware.
+
+***
+
+## AuthServiceMiddleware (service‑to‑service security)
+
+Varje mikrotjänst (utom auth‑service själv) måste kunna verifiera interna anrop från andra tjänster.
+
+Middleware kräver:
+
+X-Service-Token: <token>
+
+Och anropar auth‑servicen:
+
+POST /validate-service-token  
+{
+"token": "...",
+"service": "\<SERVICE\_NAME>"
+}
+
+Om ogiltig → UnauthorizedException (401)
+
+Konfigureras via `.env`:
+
+AUTH\_SERVICE\_URL=<http://auth-service:8080>  
+SERVICE\_NAME=time-service
+
+***
+
+## OpenAPI-kontrakt
+
+Varje mikrotjänst måste ha ett openapi.yaml:
+
+*   ligger i projektroten
+*   används av frontend (gen. typer)
+*   används av CI (breaking change-detektion)
+*   används av dokumentation
+
+Vid API‑ändringar:
+
+1.  Uppdatera openapi.yaml
+2.  Bumpa VERSION
+3.  Skicka PR — CI blockerar breaking changes
+
+***
+
+## Composer-scripts
+
+Kommandon för utveckling:
+
+composer up  
+composer down  
+composer start  
+composer shell  
+composer logs  
+composer test  
+composer stan  
+composer migrate  
 composer fix
-```
 
-På Windows fungerar detta utan Makefile, eftersom Composer är plattformsoberoende.
-
-## OpenAPI
-Alla mikrotjänster måste upprätthålla ett komplett API-kontrakt i `openapi.yaml`.
-
-Kontraktet används av:
-- frontend (type-safe klienter)
-- CI (kontraktsvalidering + breaking change-detektion)
-- dokumentation
-
+***
 
 ## Lokal utveckling
-### Steg 1 – Installera beroenden i Docker
-```bash
-docker compose up --build -d
+
+### Steg 1 – Installera beroenden via Docker
+
+docker compose up --build -d  
 docker compose exec slim-service composer install
-```
 
+### Steg 2 – Kopiera miljöfil
 
-### Steg 2 – Skapa din .env‑fil
-```bash
 cp .env.example .env
-```
-
 
 ### Steg 3 – Starta tjänsten
-```bash
+
 composer up
-```
 
-Tjänsten körs nu på:
-http://localhost:8080/health
+### Tjänsten finns på:
 
+<http://localhost:8080/health>
 
-### Steg 4 – Shell in i containern
-```bash
+### Shell i containern:
+
 composer shell
-```
 
-##️ Databas & migrations
-```bash
+***
+
+## Databas
+
+Kör migrations:
+
 composer migrate
-```
 
-
-##️ Routing & Actions
-
-Routing är organiserad i domänbaserade grupper via `config/routes.php`.
-
-Varje endpoint har en egen invokable Action‑klass i:
-
-src/Application/Actions/*Action.php
-
-Alla Actions ärver från `AbstractAction` och returnerar konsekventa JSON‑svar:
-
-```json
-{
-  "status": 200,
-  "data": { ... }
-}
-```
-
-
-## Uppdatera API-kontrakt
-När du ändrar något i API:et:
-1. Uppdatera openapi.yaml
-2. Bumpa VERSION-filen
-3. CI säkerställer att inga breaking changes glider igenom
