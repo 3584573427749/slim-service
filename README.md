@@ -135,6 +135,104 @@ Alla Actions returnerar konsekventa success‑responses:
 
 ***
 
+## Valideringsmodell
+
+I denna plattform ligger all validering i entiteterna i stället för i middleware eller actions. Varje entitet ansvarar för att säkerställa sina egna invariants och att inkommande data är korrekt innan en instans skapas. Detta ger en konsekvent och robust domänmodell där fel fångas tidigt och där alla tjänster följer samma valideringsprinciper.
+
+***
+
+## Entitetsbaserad validering
+
+All validering sker i domänlagret. Detta betyder att varje entitet är ansvarig för att kontrollera att den konstrueras med giltiga värden. Felaktiga värden leder till att en validerings‑exception kastas. Detta gör det omöjligt att skapa en ogiltig entitet, vilket garanterar att resten av applikationen alltid arbetar med korrekta och säkra data.
+
+***
+
+##️ FromRequest-fabriker
+
+Varje entitet implementerar en statisk metod `fromRequest`, vars ansvar är att:
+
+1.  Extrahera inkommande data (t.ex. från en HTTP‑request eller DTO)
+2.  Validera varje fält med en eller flera fältvaliderare
+3.  Skapa och returnera en *giltig* entitet
+4.  Vid fel, kasta en `ValidationException` med tydlig information om vad som är fel
+
+På detta sätt hålls Actions smala och rena, och all domänlogik hålls inom entiteterna.
+
+***
+
+## Fältvalidering i entiteter
+
+Validering sker fält för fält. Varje entitet kan anropa små dedikerade valideringsfunktioner, t.ex.:
+
+*   kontroll av att en sträng inte är tom
+*   kontroll av att en sträng är korrekt formaterad
+*   kontroll av att ett tal ligger inom ett intervall
+*   kontroll av att ett datum är korrekt och inte “rullar över”
+*   kontroll av att ett värde är inom domänens tillåtna regler
+
+Detta gör valideringslogiken explicit och enkel att följa.
+
+***
+
+##️ Återanvändbara fältvalidatorer
+
+För att undvika duplicering kan du skapa fristående små valideringsklasser eller funktioner, till exempel:
+
+*   DateStringIsValidFormat
+*   DateStringIsCorrectDate
+*   DateMustBeInFuture
+*   NonEmptyString
+*   ValidUuid
+
+Dessa kan kombineras i valfri ordning av varje entitet beroende på dess specifika invariants. Mallen innehåller inga validerare i sig, utan du skapar dem efter behov i respektive tjänst.
+
+***
+
+##️ Valideringsfel och exceptions
+
+Om valideringen misslyckas kastar entiteten en `ValidationException`. ErrorHandler fångar detta och returnerar ett strukturerat fel enligt standardformatet:
+
+{
+"status": 400,
+"error": {
+"type": "ValidationException",
+"message": "Felbeskrivning",
+"details": { "field": "detSpecifikaFältet" }
+}
+}
+
+Detta säkerställer enhetliga felsvar i alla tjänster.
+
+***
+
+## Actions och validering
+
+Actions ansvarar inte för validering. De gör endast följande:
+
+1.  Hämtar request‑data
+2.  Anropar entitetens `fromRequest`‑metod
+3.  Delegarar vidare till Service/Repository
+4.  Returnerar ett success‑svar
+
+Exempel:
+
+$entity = Event::fromRequest($request->getParsedBody());
+
+På så sätt blir Actions korta, tydliga och fria från valideringslogik.
+
+***
+
+## Services och domänlogik
+
+Services och Repositories får alltid en **giltig entitet**. Detta innebär:
+
+*   ingen validering i services
+*   inga defensiva kontroller
+*   inga if‑satser för att leta efter “edge cases”
+*   tydligare och renare affärslogik
+
+***
+
 ## Middleware
 
 ### JSON Body Parsing
