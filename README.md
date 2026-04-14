@@ -135,6 +135,46 @@ Alla Actions returnerar konsekventa success‑responses:
 
 ***
 
+## Aggregat – Arkitekturprincip (Dokumentation)
+Denna template innehåller inga aggregat i kod. Det är ett medvetet och viktigt designbeslut.
+### Vad menas med aggregat?
+Ett aggregat är ett domänbegrepp från Domain‑Driven Design. Det beskriver den minsta gruppen av objekt som alltid måste vara konsistenta tillsammans, och som bara får ändras genom en tydligt definierad rot – en Aggregate Root.
+Aggregat är:
+
+* knutna till affärsregler
+* bärare av domäninvariants
+* ansvariga för sin egen konsistens
+Detta betyder att aggregat alltid är domänspecifika.
+
+### Varför finns inga aggregat i mallen?
+Detta repository är en teknisk och arkitektonisk template, inte en färdig applikation. En template ska:
+
+* inte anta någon domän
+* inte innehålla affärsregler
+* inte innehålla domänentiteter
+* inte innehålla aggregat
+
+Eftersom aggregat kräver kunskap om domänen hör de aldrig hemma i ett mall‑repo. De ska alltid implementeras i respektive mikrotjänst, där domänreglerna faktiskt är kända.
+
+### Hur stöder templaten aggregat ändå?
+Även om inga aggregat finns i koden, är templaten byggd för att göra det enkelt och korrekt att skapa aggregat i varje tjänst:
+
+* AbstractId ger tydlig identitet för framtida Aggregate Roots
+* gemensamma Value Objects möjliggör invariants utan validering i actions
+* repository‑konventioner uppmuntrar arbete med hela entiteter
+* error‑hantering gör att invariants kan brytas säkert och konsekvent
+* Templaten etablerar förutsättningarna för aggregat, utan att definiera dem.
+
+### Rekommenderad praxis i respektive tjänst
+När du skapar en konkret tjänst baserat på denna template bör du:
+
+* Identifiera dina aggregat utifrån domänregler (inte tabeller)
+* Utse tydliga Aggregate Roots
+* Se till att endast Aggregate Roots har repositories
+* Implementera alla domänregler inne i aggregatet
+* Låta ändringar ske via metoder på Aggregate Root – aldrig direkt på interna objekt
+* Relationer till andra tjänster ska alltid ske via ID‑referenser (ValueObjects), aldrig via objekt.
+
 ## Valideringsmodell
 
 I denna plattform ligger all validering i entiteterna i stället för i middleware eller actions. Varje entitet ansvarar för att säkerställa sina egna invariants och att inkommande data är korrekt innan en instans skapas. Detta ger en konsekvent och robust domänmodell där fel fångas tidigt och där alla tjänster följer samma valideringsprinciper.
