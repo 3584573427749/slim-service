@@ -1,0 +1,10 @@
+name: Backend CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  ci:
+    uses: 3584573427749/.github/workflows/backend-base-ci.yml@main
