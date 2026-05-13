@@ -1,5 +1,7 @@
 {
   "name": "template/slim-service",
+  "description": "User management backend service",
+  "license": "proprietary"
   "type": "project",
   "require": {
     "php": "^8.3",
