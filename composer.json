@@ -5,6 +5,11 @@
   "type": "project",  
   "minimum-stability": "dev",
   "prefer-stable": true,
+  "config": {
+    "allow-plugins": {
+      "infection/extension-installer": true
+    }
+  },
   "require": {
     "php": "^8.3",
     "slim/slim": "^4.0",
