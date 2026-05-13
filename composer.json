@@ -2,7 +2,9 @@
   "name": "template/slim-service",
   "description": "User management backend service",
   "license": "proprietary",
-  "type": "project",
+  "type": "project",  
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "require": {
     "php": "^8.3",
     "slim/slim": "^4.0",
