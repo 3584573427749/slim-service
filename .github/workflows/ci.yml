@@ -7,4 +7,4 @@ on:
 
 jobs:
   ci:
-    uses: 3584573427749/.github/workflows/backend-base-ci.yml@main
+    uses: 3584573427749/workflows/backend-base-ci.yml@main
