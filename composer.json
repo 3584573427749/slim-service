@@ -37,6 +37,9 @@
     }
   },
   "scripts": {
+    "post-install-cmd": [
+      "@php -r \"if (!is_dir('.ci')) mkdir('.ci', 0777, true); if (!file_exists('.ci/run-phpunit')) touch('.ci/run-phpunit');\""
+    ],
     "up": "docker compose up --build",
     "down": "docker compose down",
     "start": "docker compose up",
