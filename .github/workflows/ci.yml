@@ -9,3 +9,5 @@ on:
 jobs:
   ci:
     uses: 3584573427749/.github/.github/workflows/php-ci.yml@main
+    with:
+      php-version: '8.3'
