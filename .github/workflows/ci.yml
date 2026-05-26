@@ -8,4 +8,4 @@ on:
 
 jobs:
   ci:
-    uses: 3584573427749/.github/.github/workflows/backend-base-ci.yml@main
+    uses: 3584573427749/.github/.github/workflows/php-ci.yml@main
