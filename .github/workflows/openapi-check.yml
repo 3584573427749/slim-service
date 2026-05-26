@@ -7,41 +7,4 @@ on:
 
 jobs:
   openapi:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install OpenAPI tools
-        run: |
-          npm install -g @redocly/openapi-cli
-          npm install -g openapi-diff
-
-      - name: Lint OpenAPI
-        run: openapi lint openapi.yaml
-
-      - name: Validate syntax
-        run: openapi validate openapi.yaml
-
-      - name: Detect breaking changes
-        if: github.event_name == 'pull_request'
-        run: |
-          git fetch origin main
-          if [ -f openapi.yaml ]; then
-            openapi-diff --fail-on-breaking origin/main openapi.yaml
-          fi
-
-      - name: Require VERSION bump when OpenAPI changes
-        run: |
-          if git diff --name-only origin/main...HEAD | grep -q "openapi.yaml"; then
-            if ! git diff --name-only origin/main...HEAD | grep -q "VERSION"; then
-              echo "::error::Changes in OpenAPI require VERSION bump"
-              exit 1
-            fi
-          fi
+    uses: 3584573427749/.github/.github/workflows/openapi-check.yml@main
