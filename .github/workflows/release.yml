@@ -1,0 +1,14 @@
+name: Release
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  docker-release:
+    uses: 3584573427749/.github/.github/workflows/docker-release.yml@main
+    secrets: inherit
