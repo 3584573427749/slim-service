@@ -12,5 +12,11 @@ RUN composer install --no-dev --prefer-dist --no-interaction
 
 COPY . .
 
-EXPOSE 8080
+# Entrypoint för att köra migration
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+
 CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]
+EXPOSE 8080
