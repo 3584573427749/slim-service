@@ -1,6 +1,6 @@
 # Slim Service Template
 
-Detta repository är en komplett template för mikrotjänster byggda på Slim 4.
+Detta repository är en komplett mall för mikrotjänster byggda på Slim 4.
 
 Den innehåller en fullständig grund för:
 
@@ -136,7 +136,7 @@ Alla Actions returnerar konsekventa success‑responses:
 ***
 
 ## Aggregat – Arkitekturprincip (Dokumentation)
-Denna template innehåller inga aggregat i kod. Det är ett medvetet och viktigt designbeslut.
+Denna mall innehåller inga aggregat i kod. Det är ett medvetet och viktigt designbeslut.
 ### Vad menas med aggregat?
 Ett aggregat är ett domänbegrepp från Domain‑Driven Design. Det beskriver den minsta gruppen av objekt som alltid måste vara konsistenta tillsammans, och som bara får ändras genom en tydligt definierad rot – en Aggregate Root.
 Aggregat är:
@@ -147,7 +147,7 @@ Aggregat är:
 Detta betyder att aggregat alltid är domänspecifika.
 
 ### Varför finns inga aggregat i mallen?
-Detta repository är en teknisk och arkitektonisk template, inte en färdig applikation. En template ska:
+Detta repository är en teknisk och arkitektonisk mall, inte en färdig applikation. En mall ska:
 
 * inte anta någon domän
 * inte innehålla affärsregler
@@ -156,17 +156,17 @@ Detta repository är en teknisk och arkitektonisk template, inte en färdig appl
 
 Eftersom aggregat kräver kunskap om domänen hör de aldrig hemma i ett mall‑repo. De ska alltid implementeras i respektive mikrotjänst, där domänreglerna faktiskt är kända.
 
-### Hur stöder templaten aggregat ändå?
-Även om inga aggregat finns i koden, är templaten byggd för att göra det enkelt och korrekt att skapa aggregat i varje tjänst:
+### Hur stöder mallen aggregat ändå?
+Även om inga aggregat finns i koden, är mallen byggd för att göra det enkelt och korrekt att skapa aggregat i varje tjänst:
 
 * AbstractId ger tydlig identitet för framtida Aggregate Roots
 * gemensamma Value Objects möjliggör invariants utan validering i actions
 * repository‑konventioner uppmuntrar arbete med hela entiteter
 * error‑hantering gör att invariants kan brytas säkert och konsekvent
-* Templaten etablerar förutsättningarna för aggregat, utan att definiera dem.
+* Mallen etablerar förutsättningarna för aggregat, utan att definiera dem.
 
 ### Rekommenderad praxis i respektive tjänst
-När du skapar en konkret tjänst baserat på denna template bör du:
+När du skapar en konkret tjänst baserat på denna mall bör du:
 
 * Identifiera dina aggregat utifrån domänregler (inte tabeller)
 * Utse tydliga Aggregate Roots
