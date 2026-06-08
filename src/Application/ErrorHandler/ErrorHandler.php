@@ -6,6 +6,7 @@ namespace App\Application\ErrorHandler;
 use App\Domain\Exception\ForbiddenException;
 use App\Domain\Exception\InternalException;
 use App\Domain\Exception\NotFoundException;
+use App\Domain\Exception\RecordExistsException;
 use App\Domain\Exception\UnauthorizedException;
 use App\Domain\Exception\ValidationException;
 use Monolog\Logger;
@@ -45,6 +46,7 @@ class ErrorHandler {
             $exception instanceof UnauthorizedException => 401,
             $exception instanceof ForbiddenException => 403,
             $exception instanceof NotFoundException => 404,
+            $exception instanceof RecordExistsException => 409,
             $exception instanceof InternalException => 500,
             default => 500,
         };
