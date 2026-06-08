@@ -22,7 +22,12 @@ final class DateTimeValue implements JsonSerializable {
      */
     public function __construct(string|DateTimeInterface $value) {
         if ($value instanceof DateTimeInterface) {
+<<<<<<< HEAD
             $this->value = (new DateTimeImmutable($value->format('Y-m-d H:i:s')));
+=======
+            $this->value = (new DateTimeImmutable($value->format(DateTimeInterface::ATOM)))
+                ->setTimezone(new \DateTimeZone('UTC'));
+>>>>>>> 3514ea23110550671937378b74d086646a5c510c
 
             return;
         }
@@ -45,7 +50,11 @@ final class DateTimeValue implements JsonSerializable {
     }
 
     public function toString():string {
+<<<<<<< HEAD
         return $this->value->format('Y-m-d H:i');
+=======
+        return $this->value->format(DateTimeInterface::ATOM); // always UTC Z
+>>>>>>> 3514ea23110550671937378b74d086646a5c510c
     }
 
     public function __toString():string {
