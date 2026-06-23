@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions;
+namespace App\Http\Actions;
 
-use App\Domain\DomainException\DomainRecordNotFoundException;
+use App\Domain\Exception\DomainRecordNotFoundException;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
@@ -21,15 +21,13 @@ abstract class Action {
      */
     protected array $args;
 
-    public function __construct(protected LoggerInterface $logger) {    }
+    public function __construct(protected LoggerInterface $logger) {
+    }
 
     /**
-     * @param Request $request
-     * @param Response $response
      * @param string[] $args
-     * @return Response
      */
-    public function __invoke(Request $request, Response $response, array $args): Response {
+    public function __invoke(Request $request, Response $response, array $args) : Response {
         $this->request = $request;
         $this->response = $response;
         $this->args = $args;
@@ -45,20 +43,19 @@ abstract class Action {
      * @throws DomainRecordNotFoundException
      * @throws HttpBadRequestException
      */
-    abstract protected function action(): Response;
+    abstract protected function action() : Response;
 
     /**
      * @return string[]
      */
-    protected function getFormData() {
-        return $this->request->getParsedBody();
+    protected function getFormData() : array {
+        return (array)$this->request->getParsedBody();
     }
 
     /**
-     * @return string
      * @throws HttpBadRequestException
      */
-    protected function resolveArg(string $name): string {
+    protected function resolveArg(string $name) : string {
         if (!isset($this->args[$name])) {
             throw new HttpBadRequestException($this->request, "Could not resolve argument `{$name}`.");
         }
@@ -66,17 +63,14 @@ abstract class Action {
         return $this->args[$name];
     }
 
-    /**
-     * @param mixed|null $data
-     */
-    protected function respondWithData(mixed $data = null, int $statusCode = 200): Response {
+    protected function respondWithData(mixed $data = null, int $statusCode = 200) : Response {
         $payload = new ActionPayload($statusCode, $data);
 
         return $this->respond($payload);
     }
 
-    protected function respond(ActionPayload $payload): Response {
-        $json = json_encode($payload, JSON_PRETTY_PRINT);
+    protected function respond(ActionPayload $payload) : Response {
+        $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
         $this->response->getBody()->write($json);
 
         return $this->response

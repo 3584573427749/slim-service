@@ -1,7 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Exception;
 
-use App\Domain\Exception\RecordExistsException;
-
-class UserAlreadyExistsException extends RecordExistsException {}
+class UserAlreadyExistsException extends RecordExistsException {
+}

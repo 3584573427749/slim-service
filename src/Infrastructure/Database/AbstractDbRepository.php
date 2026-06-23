@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Database;
 
 use Doctrine\DBAL\Connection;
@@ -11,25 +13,24 @@ abstract class AbstractDbRepository {
         $this->connection = $connection;
     }
 
-
     /**
      * Starta transaktion
      */
-    protected function beginTransaction(): void {
+    protected function beginTransaction() : void {
         $this->connection->beginTransaction();
     }
 
     /**
      * Commit transaktion
      */
-    protected function commit(): void {
+    protected function commit() : void {
         $this->connection->commit();
     }
 
     /**
      * Rollback transaktion
      */
-    protected function rollback(): void {
+    protected function rollback() : void {
         $this->connection->rollBack();
     }
 }
